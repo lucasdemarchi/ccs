@@ -104,6 +104,16 @@ def calculate_tie_breaks(games, scores):
     return ties
 
 def pretty_print_games(games, scores, ties):
+    # header
+    print('%-18s' % '', end='')
+    for i in range(1, nplayers + 1):
+        print('%-8s' % ''.join([ str(i), '.']), end='')
+
+    print('| %6s |%10s' % ('Score', 'Tie Break'))
+    #             players     +  1st column  + score  + ties  + sep
+    print('-' * (nplayers * 8 +  18          + 6      + 10    + 5))
+
+    # table
     i = 0
     for r in games:
         j = -1
@@ -111,7 +121,7 @@ def pretty_print_games(games, scores, ties):
             j += 1
             #print name
             if j == 0:
-                print("%-15s" % games[i][j], end='')
+                print("%d. %-15s" % (i + 1, games[i][j]), end='')
                 continue
 
             if games[i][j] is None:
@@ -120,7 +130,7 @@ def pretty_print_games(games, scores, ties):
 
             print('%-8s' % ' '.join([str(g) for g in games[i][j]]), end='')
 
-        print('%10s%10s' % (scores[i], ties[i]))
+        print('| %6s |%10s' % (scores[i], ties[i]))
         i += 1
 
 import cmd
