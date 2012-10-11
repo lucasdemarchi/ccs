@@ -135,6 +135,7 @@ class CssInteractive(cmd.Cmd):
     def __init__(self, games):
         cmd.Cmd.__init__(self)
         self.games = games
+        self.results = []
 
     def do_print(self, line):
         '''Print current state of the championship'''
@@ -145,6 +146,14 @@ class CssInteractive(cmd.Cmd):
         scores = calculate_scores(self.games)
         ties = calculate_tie_breaks(self.games, scores)
         pretty_print_games(self.games, scores, ties)
+
+    def do_sim(self, line):
+        '''Simulate a new result'''
+        print('TODO')
+
+    def do_undo(self, line):
+        '''Undo last simulation'''
+        print('TODO')
 
     def do_EOF(self, line):
         '''Type ^D to exit'''
