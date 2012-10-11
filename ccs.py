@@ -8,8 +8,15 @@
 #
 
 
-import sys
+import argparse
 from bs4 import BeautifulSoup
+
+
+parser = argparse.ArgumentParser(
+        description='Generate scores for a chess.com championship')
+parser.add_argument('html_file', nargs=1, type=str,
+                    help='html file with current state')
+args = parser.parse_args()
 
 def get_name(col):
     return col.find_all('a')[1].text.strip()
@@ -27,7 +34,7 @@ def get_games(col):
     return games
 
 
-f = open(sys.argv[1])
+f = open(args.html_file[0])
 soup = BeautifulSoup(f)
 
 table = soup.find('table', 'pairings')
@@ -39,8 +46,6 @@ for c in thead.tr.contents:
         continue
     nplayers += 1
 nplayers -= 3 # first column, score, tie break
-
-print("Number of players: %d" % nplayers)
 
 # 1 more column to hold the name
 games = [[0 for x in range(nplayers + 1)] for x in range(nplayers)]
@@ -118,6 +123,7 @@ def pretty_print_games(games, scores, ties):
         print('%10s%10s' % (scores[i], ties[i]))
         i += 1
 
+print("Number of players: %d" % nplayers)
 
 scores = calculate_scores(games)
 ties = calculate_tie_breaks(games, scores)
