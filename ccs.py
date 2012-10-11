@@ -123,8 +123,31 @@ def pretty_print_games(games, scores, ties):
         print('%10s%10s' % (scores[i], ties[i]))
         i += 1
 
-print("Number of players: %d" % nplayers)
+import cmd
 
-scores = calculate_scores(games)
-ties = calculate_tie_breaks(games, scores)
-pretty_print_games(games, scores, ties)
+class CssInteractive(cmd.Cmd):
+    '''Command line processor for interacting with championship state'''
+
+    prompt = "css> "
+    intro = 'Command line processor for interacting with championship state'
+    undoc_header = ''
+
+    def __init__(self, games):
+        cmd.Cmd.__init__(self)
+        self.games = games
+
+    def do_print(self, line):
+        '''Print current state of the championship'''
+
+        global nplayers
+
+        print("Number of players: %d\n" % nplayers)
+        scores = calculate_scores(self.games)
+        ties = calculate_tie_breaks(self.games, scores)
+        pretty_print_games(self.games, scores, ties)
+
+    def do_EOF(self, line):
+        '''Type ^D to exit'''
+        return True
+
+CssInteractive(games).cmdloop()
