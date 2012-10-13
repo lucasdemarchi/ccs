@@ -7,9 +7,11 @@
 # generated page - pass this file as argv[1]
 #
 
+from __future__ import print_function
 
 import argparse
 from bs4 import BeautifulSoup
+from bs4 import NavigableString
 
 
 parser = argparse.ArgumentParser(
@@ -42,7 +44,7 @@ thead = table.thead
 
 nplayers = 0
 for c in thead.tr.contents:
-    if isinstance(c, str):
+    if isinstance(c, NavigableString):
         continue
     nplayers += 1
 nplayers -= 3 # first column, score, tie break
@@ -52,12 +54,12 @@ games = [[0 for x in range(nplayers + 1)] for x in range(nplayers)]
 
 i = 0
 for row in thead.next_siblings:
-    if isinstance(row, str):
+    if isinstance(row, NavigableString):
         continue
 
     j = 0
     for col in row.children:
-        if isinstance(col, str):
+        if isinstance(col, NavigableString):
             continue
 
         if j == 0:
