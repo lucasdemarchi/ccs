@@ -10,6 +10,7 @@
 from __future__ import print_function
 
 import argparse
+import re
 from bs4 import BeautifulSoup
 from bs4 import NavigableString
 
@@ -159,9 +160,33 @@ class CssInteractive(cmd.Cmd):
         ties = calculate_tie_breaks(self.games, scores)
         pretty_print_games(self.games, scores, ties)
 
+    def parse_line(self, line):
+        # Parses name1xname2=result
+        m = re.match('(?P<x>[1-9]+)x(?P<y>[1-9]+)=(?P<r>[0|1|0\.5])', line)
+        return int(m.group('x')), int(m.group('y')), int(m.group('r'))
+
     def do_sim(self, line):
         '''Simulate a new result'''
-        print('TODO')
+        global nplayers
+
+        try:
+            x, y, r = self.parse_line(line)
+        except AttributeError:
+            print('Could not parse result simulation %s\n' % line)
+            return
+
+        if x > nplayers or y > nplayers or x == y:
+            print('Invalid players in result simulation %s\n' % line)
+            return
+
+        if len(self.games[x - 1][y]) >= 2:
+            print('All games already played in %s x %s' %
+                    (self.games[x - 1][0], self.games[y - 1][0]))
+            return
+
+        self.results.append((x, y, r))
+        self.games[x - 1][y] += r,
+        self.games[y - 1][x] += 1 - r,
 
     def do_undo(self, line):
         '''Undo last simulation'''
