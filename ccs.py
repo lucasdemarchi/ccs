@@ -165,6 +165,17 @@ class CssInteractive(cmd.Cmd):
         m = re.match('(?P<x>[1-9]+)x(?P<y>[1-9]+)=(?P<r>[0|1|0\.5])', line)
         return int(m.group('x')), int(m.group('y')), int(m.group('r'))
 
+    def pretty_print_simulation(self, sim):
+        x, y, r = sim
+        if r == 0:
+            rstr = " loses against "
+        elif r == 1:
+            rstr = " beats "
+        else:
+            rstr = " ties with "
+
+        print('%s%s%s' % (self.games[x - 1][0], rstr, self.games[y - 1][0]))
+
     def do_push(self, line):
         '''Push new simulation'''
         global nplayers
@@ -188,17 +199,16 @@ class CssInteractive(cmd.Cmd):
         self.games[x - 1][y] += r,
         self.games[y - 1][x] += 1 - r,
 
-        if r == 0:
-            rstr = " loses against "
-        elif r == 1:
-            rstr = " beats "
-        else:
-            rstr = " ties with "
+        print('Simulation added: ', end='')
+        self.pretty_print_simulation(self.results[-1])
+        self.do_state('')
 
-        print("Simulation added: %s%s%s" %
-                (self.games[x - 1][0], rstr, self.games[y - 1][0]))
+    def do_simulations(self, line):
+        '''Print current simulations'''
 
-        self.do_state(None)
+        for r in self.results:
+            print('%dx%d=%d - ' % (r[0], r[1], r[2]), end='')
+            self.pretty_print_simulation(r)
 
     def do_pop(self, line):
         '''Remove last n simulations'''
