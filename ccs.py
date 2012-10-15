@@ -150,7 +150,7 @@ class CssInteractive(cmd.Cmd):
         self.games = games
         self.results = []
 
-    def do_print(self, line):
+    def do_state(self, line):
         '''Print current state of the championship'''
 
         global nplayers
