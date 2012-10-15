@@ -165,8 +165,8 @@ class CssInteractive(cmd.Cmd):
         m = re.match('(?P<x>[1-9]+)x(?P<y>[1-9]+)=(?P<r>[0|1|0\.5])', line)
         return int(m.group('x')), int(m.group('y')), int(m.group('r'))
 
-    def do_sim(self, line):
-        '''Simulate a new result'''
+    def do_push(self, line):
+        '''Push new simulation'''
         global nplayers
 
         try:
@@ -200,8 +200,8 @@ class CssInteractive(cmd.Cmd):
 
         self.do_state(None)
 
-    def do_undo(self, line):
-        '''Undo last simulation'''
+    def do_pop(self, line):
+        '''Remove last n simulations'''
         print('TODO')
 
     def do_EOF(self, line):
