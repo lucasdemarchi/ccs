@@ -188,6 +188,18 @@ class CssInteractive(cmd.Cmd):
         self.games[x - 1][y] += r,
         self.games[y - 1][x] += 1 - r,
 
+        if r == 0:
+            rstr = " loses against "
+        elif r == 1:
+            rstr = " beats "
+        else:
+            rstr = " ties with "
+
+        print("Simulation added: %s%s%s" %
+                (self.games[x - 1][0], rstr, self.games[y - 1][0]))
+
+        self.do_state(None)
+
     def do_undo(self, line):
         '''Undo last simulation'''
         print('TODO')
