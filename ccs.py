@@ -21,6 +21,12 @@ parser.add_argument('html_file', nargs=1, type=str,
                     help='html file with current state')
 args = parser.parse_args()
 
+class Player:
+    def __init__(self, name):
+        self.name = name
+        self.score = 0
+        self.tie = 0
+
 def get_name(col):
     return col.find_all('a')[1].text.strip()
 
@@ -50,7 +56,7 @@ for c in thead.tr.contents:
     nplayers += 1
 nplayers -= 3 # first column, score, tie break
 
-# 1 more column to hold the name
+# 1 more column to hold player info
 games = [[0 for x in range(nplayers + 1)] for x in range(nplayers)]
 
 i = 0
@@ -64,11 +70,11 @@ for row in thead.next_siblings:
             continue
 
         if j == 0:
-            games[i][j] = get_name(col)
+            games[i][-1] = Player(get_name(col))
         elif j == i + 1:
-            games[i][j] = None
+            games[i][j - 1] = None
         else:
-            games[i][j] = get_games(col)
+            games[i][j - 1] = get_games(col)
 
         j += 1
         if j > nplayers:
@@ -79,7 +85,7 @@ def calculate_scores(games):
     scores = []
     for r in games:
         s = 0
-        for c in r[1:]:
+        for c in r[:-1]:
             if c is None:
                 continue
             for g in c:
@@ -94,7 +100,7 @@ def calculate_tie_breaks(games, scores):
     for r in games:
         t = 0
         j = -1
-        for c in r[1:]:
+        for c in r[:-1]:
             j += 1
             if c is None:
                 continue
@@ -106,7 +112,17 @@ def calculate_tie_breaks(games, scores):
 
     return ties
 
-def pretty_print_games(games, scores, ties):
+def update_games(games, scores, ties):
+    i = 0
+    for r in games:
+        r[-1].score = scores[i]
+        r[-1].tie = ties[i]
+        i += 1
+
+    games.sort(key=lambda x: x[-1].score * nplayers * 10 + x[-1].tie)
+    games.reverse()
+
+def pretty_print_games(games):
     # header
     print('%-18s' % '', end='')
     for i in range(1, nplayers + 1):
@@ -119,22 +135,18 @@ def pretty_print_games(games, scores, ties):
     # table
     i = 0
     for r in games:
-        j = -1
-        for c in r:
-            j += 1
-            #print name
-            if j == 0:
-                print("%d. %-15s" % (i + 1, games[i][j]), end='')
-                continue
+        #print name
+        print("%d. %-15s" % (i + 1, r[-1].name), end='')
+        i += 1
 
-            if games[i][j] is None:
+        for c in r[:-1]:
+            if c is None:
                 print("%-8s" % " X", end='')
                 continue
 
-            print('%-8s' % ' '.join([str(g) for g in games[i][j]]), end='')
+            print('%-8s' % ' '.join([str(g) for g in c]), end='')
 
-        print('| %6s |%10s' % (scores[i], ties[i]))
-        i += 1
+        print('| %6s |%10s' % (r[-1].score, r[-1].tie))
 
 import cmd
 
@@ -149,15 +161,15 @@ class CssInteractive(cmd.Cmd):
         self.games = games
         self.results = []
 
+        self.update_games()
+
     def do_state(self, line):
         '''Print current state of the championship'''
 
         global nplayers
 
         print("Number of players: %d\n" % nplayers)
-        scores = calculate_scores(self.games)
-        ties = calculate_tie_breaks(self.games, scores)
-        pretty_print_games(self.games, scores, ties)
+        pretty_print_games(self.games)
 
     def parse_line(self, line):
         # Parses name1xname2=result
@@ -173,7 +185,12 @@ class CssInteractive(cmd.Cmd):
         else:
             rstr = " ties with "
 
-        print('%s%s%s' % (self.games[x - 1][0], rstr, self.games[y - 1][0]))
+        print('%s%s%s' % (self.games[x][-1].name, rstr, self.games[y][-1].name))
+
+    def update_games(self):
+        scores = calculate_scores(self.games)
+        ties = calculate_tie_breaks(self.games, scores)
+        update_games(self.games, scores, ties)
 
     def do_push(self, line):
         '''Push new simulation'''
@@ -195,8 +212,9 @@ class CssInteractive(cmd.Cmd):
             return
 
         self.results.append((x, y, r))
-        self.games[x - 1][y] += r,
-        self.games[y - 1][x] += 1 - r,
+        self.games[x][y] += r,
+        self.games[y][x] += 1 - r,
+        self.update_games()
 
         print('Simulation added: ', end='')
         self.pretty_print_simulation(self.results[-1])
@@ -214,8 +232,9 @@ class CssInteractive(cmd.Cmd):
         s = self.results.pop()
         x, y, r = s
 
-        self.games[x - 1][y] = self.games[x - 1][y][:-1]
-        self.games[y - 1][x] = self.games[y - 1][x][:-1]
+        self.games[x][y] = self.games[x][y][:-1]
+        self.games[y][x] = self.games[y][x][:-1]
+        self.update_games()
 
         print('Simulation removed: ', end='')
         self.pretty_print_simulation(s)
