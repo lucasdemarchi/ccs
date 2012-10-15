@@ -211,8 +211,15 @@ class CssInteractive(cmd.Cmd):
             self.pretty_print_simulation(r)
 
     def do_pop(self, line):
-        '''Remove last n simulations'''
-        print('TODO')
+        '''Remove last simulation'''
+        s = self.results.pop()
+        x, y, r = s
+
+        self.games[x - 1][y] = self.games[x - 1][y][:-1]
+        self.games[y - 1][x] = self.games[y - 1][x][:-1]
+
+        print('Simulation removed: ', end='')
+        self.pretty_print_simulation(s)
 
     def do_EOF(self, line):
         '''Type ^D to exit'''
