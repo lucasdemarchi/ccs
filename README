@@ -1,0 +1,21 @@
+Chess.com Championship Scores (ccs)
+***********************************
+
+Simple tool to parse the html page for tournaments of chess.com and allow to
+simulate new results.
+
+Using it
+========
+
+In order to use ccs you will need the following packages:
+	- Python 2.7 or 3.x
+	- BeautifulSoup 4 or greater for your python instalation. In Archlinux
+	  it's obtained from the following packages: python-beautifulsoup4 for
+	  python 3 and python2-beautifulsoup4 for python 2
+
+1) Copy and paste the html file containing the pairings table from
+   www.chess.com. It shall look like the ones in data/example*.html
+
+2) Run 'ccs.py your-html-file.html'
+
+3) Type 'help' to see the list of commands
