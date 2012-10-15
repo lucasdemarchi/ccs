@@ -142,7 +142,6 @@ class CssInteractive(cmd.Cmd):
     '''Command line processor for interacting with championship state'''
 
     prompt = "css> "
-    intro = 'Command line processor for interacting with championship state'
     undoc_header = ''
 
     def __init__(self, games):
