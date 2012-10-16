@@ -132,7 +132,7 @@ def pretty_print_games(players):
     # header
     print('%-18s' % '', end='')
     for i in range(1, nplayers + 1):
-        print('%-8s' % ''.join([ str(i), '.']), end='')
+        print('{0:^8s}'.format(str(i) + '.'), end='')
 
     print('| %6s |%10s' % ('Score', 'Tie Break'))
     #             players     +  1st column  + score  + ties  + sep
@@ -146,14 +146,10 @@ def pretty_print_games(players):
 
         for j in range(0, nplayers):
             if j == i:
-                print("%-8s" % " X", end='')
+                print('{0:^8s}'.format('X'), end='')
                 continue
 
-            y = players[j]
-            if y in p.games.keys():
-                print('%-8s' % ' '.join(['%.1g' % g for g in p.games[y]]), end='')
-            else:
-                print(' ' * 8, end='')
+            print('{0:^8s}'.format(' '.join(['%.1g' % g for g in p.games.get(players[j], [])])), end='')
 
         print('| %6s |%10s' % (p.score, p.tie))
         i += 1
