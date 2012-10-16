@@ -238,6 +238,7 @@ class CssInteractive(cmd.Cmd):
 
         print('Simulation removed: ', end='')
         self.pretty_print_simulation(s)
+        self.do_state('')
 
     def do_EOF(self, line):
         '''Type ^D to exit'''
