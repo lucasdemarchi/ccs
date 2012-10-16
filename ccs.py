@@ -124,6 +124,8 @@ def update_players(players):
         players[i].score = scores[i]
         players[i].tie = ties[i]
 
+    players.sort(key=lambda x: x.score * nplayers * 1000 + x.tie, reverse=True)
+
 def pretty_print_games(players):
     nplayers = len(players)
 
