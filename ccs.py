@@ -115,7 +115,16 @@ def calculate_tie_breaks(players, scores):
 
     return ties
 
-def pretty_print_games(players, scores, ties):
+def update_players(players):
+    nplayers = len(players)
+    scores = calculate_scores(players)
+    ties = calculate_tie_breaks(players, scores)
+
+    for i in range(0, nplayers):
+        players[i].score = scores[i]
+        players[i].tie = ties[i]
+
+def pretty_print_games(players):
     nplayers = len(players)
 
     # header
@@ -144,7 +153,7 @@ def pretty_print_games(players, scores, ties):
             else:
                 print(' ' * 8, end='')
 
-        print('| %6s |%10s' % (scores[i], ties[i]))
+        print('| %6s |%10s' % (p.score, p.tie))
         i += 1
 
 import cmd
@@ -160,15 +169,15 @@ class CssInteractive(cmd.Cmd):
         self.players = players
         self.results = []
 
+        self.update_players()
+
     def do_state(self, line):
         '''Print current state of the championship'''
 
         global nplayers
 
         print("Number of players: %d\n" % nplayers)
-        scores = calculate_scores(self.players)
-        ties = calculate_tie_breaks(self.players, scores)
-        pretty_print_games(self.players, scores, ties)
+        pretty_print_games(self.players)
 
     def parse_line(self, line):
         # Parses name1xname2=result
@@ -185,6 +194,9 @@ class CssInteractive(cmd.Cmd):
             rstr = " ties with "
 
         print('%s%s%s' % (x.name, rstr, y.name))
+
+    def update_players(self):
+        update_players(self.players)
 
     def do_push(self, line):
         '''Push new simulation'''
@@ -210,7 +222,7 @@ class CssInteractive(cmd.Cmd):
 
         x.games[y] = x.games.get(y, tuple()) + (r,)
         y.games[x] = y.games.get(x, tuple()) + (1 - r,)
-
+        self.update_players()
         self.results.append((x, y, r))
 
         print('Simulation added: ', end='')
@@ -235,6 +247,7 @@ class CssInteractive(cmd.Cmd):
 
         x.games[y] = x.games[y][:-1]
         y.games[x] = y.games[x][:-1]
+        self.update_players()
 
         print('Simulation removed: ', end='')
         self.pretty_print_simulation(s)
