@@ -184,10 +184,10 @@ def pretty_print_games(players, simulations):
 
 import cmd
 
-class CssInteractive(cmd.Cmd):
+class CcsInteractive(cmd.Cmd):
     '''Command line processor for interacting with championship state'''
 
-    prompt = "css> "
+    prompt = "ccs> "
     undoc_header = ''
 
     def __init__(self, players):
@@ -283,4 +283,4 @@ class CssInteractive(cmd.Cmd):
         '''Type ^D to exit'''
         return True
 
-CssInteractive(players).cmdloop()
+CcsInteractive(players).cmdloop()
