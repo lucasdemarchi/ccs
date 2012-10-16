@@ -15,6 +15,9 @@ from bs4 import BeautifulSoup
 from bs4 import NavigableString
 from operator import attrgetter
 
+COLOR_YELLOW = "\033[1;33m"
+COLOR_CLEAR = "\033[0m"
+
 parser = argparse.ArgumentParser(
         description='Generate scores for a chess.com championship')
 parser.add_argument('html_file', nargs=1, type=str,
@@ -126,7 +129,7 @@ def update_players(players):
 
     players.sort(key=attrgetter('score', 'tie', 'name'), reverse=True)
 
-def pretty_print_games(players):
+def pretty_print_games(players, simulations):
     nplayers = len(players)
 
     # header
@@ -151,7 +154,28 @@ def pretty_print_games(players):
 
             y = players[j]
             if y in p.games.keys():
-                print('%-8s' % ' '.join([str(g) for g in p.games[y]]), end='')
+                n = 0
+                for s in simulations:
+                    if (s[0] == p and s[1] == y) or (s[0] == y and s[1] == p):
+                        n += 1
+
+                fixspaces = 0
+                n = len(p.games[y]) - n
+                l = []
+                for g in p.games[y]:
+                    if n > 0:
+                        s = str(g)
+                    else:
+                        fixspaces += 1
+                        s = '%s%s%s' % (COLOR_YELLOW, str(g), COLOR_CLEAR)
+                    n -= 1
+                    l.append(s)
+
+                print('%-8s' % ' '.join(l), end='')
+
+                # Sadly '%-8s' screw up when feed up with colors
+                if fixspaces > 0:
+                    print(' ' * (8 - (2 * len(l) - 1)), end='')
             else:
                 print(' ' * 8, end='')
 
@@ -179,7 +203,7 @@ class CssInteractive(cmd.Cmd):
         global nplayers
 
         print("Number of players: %d\n" % nplayers)
-        pretty_print_games(self.players)
+        pretty_print_games(self.players, self.results)
 
     def parse_line(self, line):
         # Parses name1xname2=result
