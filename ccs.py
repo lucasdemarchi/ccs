@@ -39,7 +39,7 @@ def get_games(col):
         if s == '_' or s == 'X':
             continue
 
-        games += int(s),
+        games += float(s),
 
     return games
 
@@ -151,7 +151,7 @@ def pretty_print_games(players):
 
             y = players[j]
             if y in p.games.keys():
-                print('%-8s' % ' '.join([str(g) for g in p.games[y]]), end='')
+                print('%-8s' % ' '.join(['%.1g' % g for g in p.games[y]]), end='')
             else:
                 print(' ' * 8, end='')
 
@@ -183,8 +183,8 @@ class CcsInteractive(cmd.Cmd):
 
     def parse_line(self, line):
         # Parses name1xname2=result
-        m = re.match('(?P<x>[1-9]+)x(?P<y>[1-9]+)=(?P<r>[0|1|0\.5])', line)
-        return int(m.group('x')), int(m.group('y')), int(m.group('r'))
+        m = re.match('(?P<x>[1-9]+)x(?P<y>[1-9]+)=(?P<r>[\d.]+)', line)
+        return int(m.group('x')), int(m.group('y')), float(m.group('r'))
 
     def pretty_print_simulation(self, sim):
         x, y, r = sim
