@@ -13,7 +13,7 @@ import argparse
 import re
 from bs4 import BeautifulSoup
 from bs4 import NavigableString
-
+from operator import attrgetter
 
 parser = argparse.ArgumentParser(
         description='Generate scores for a chess.com championship')
@@ -124,7 +124,7 @@ def update_players(players):
         players[i].score = scores[i]
         players[i].tie = ties[i]
 
-    players.sort(key=lambda x: x.score * nplayers * 1000 + x.tie, reverse=True)
+    players.sort(key=attrgetter('score', 'tie', 'name'), reverse=True)
 
 def pretty_print_games(players):
     nplayers = len(players)
