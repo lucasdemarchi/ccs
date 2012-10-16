@@ -225,10 +225,11 @@ class CssInteractive(cmd.Cmd):
 
     def do_pop(self, line):
         '''Remove last simulation'''
-        s = self.results.pop()
-        if not s:
+        if not self.results:
             print('No simulation to pop')
             return
+
+        s = self.results.pop()
 
         x, y, r = s
 
