@@ -10,6 +10,7 @@
 from __future__ import print_function
 
 import argparse
+import math
 import re
 from bs4 import BeautifulSoup
 from bs4 import NavigableString
@@ -138,11 +139,13 @@ def pretty_print_games(players):
     #             players     +  1st column  + score  + ties  + sep
     print('-' * (nplayers * 8 +  18          + 6      + 10    + 5))
 
+    len_players_col=math.floor(math.log10(len(players))) + 1
     # table
     i = 0
     for p in players:
         #print name
-        print("%d. %-15s" % (i + 1, p.name), end='')
+        n=str(i + 1).rjust(len_players_col)
+        print("%s. %-15s" % (n, p.name), end='')
 
         for j in range(0, nplayers):
             if j == i:
