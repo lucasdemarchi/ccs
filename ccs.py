@@ -139,7 +139,7 @@ def pretty_print_games(players):
     #             players     +  1st column  + score  + ties  + sep
     print('-' * (nplayers * 8 +  18          + 6      + 10    + 5))
 
-    len_players_col=math.floor(math.log10(len(players))) + 1
+    len_players_col=int(math.floor(math.log10(len(players))) + 1)
     # table
     i = 0
     for p in players:
