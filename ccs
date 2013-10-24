@@ -164,6 +164,7 @@ class CcsInteractive(cmd.Cmd):
 
     prompt = "ccs> "
     undoc_header = ''
+    actions = [ 'wins-against', 'loses-against' ]
 
     def __init__(self, players):
         cmd.Cmd.__init__(self)
@@ -185,6 +186,16 @@ class CcsInteractive(cmd.Cmd):
         m = re.match('(?P<x>[1-9]+)x(?P<y>[1-9]+)=(?P<r>[\d.]+)', line)
         return int(m.group('x')), int(m.group('y')), float(m.group('r'))
 
+    def parse_line_human_format(self, line):
+        xname, result, yname = line.split()
+        x = self.players.index(self.find_player(xname)) + 1
+        y = self.players.index(self.find_player(yname)) + 1
+        r = self.actions.index(result) + 1
+        if not x or not y or not r:
+            raise AttributeError()
+
+        return x, y, r % 2
+
     def pretty_print_simulation(self, sim):
         x, y, r = sim
         if r == 0:
@@ -199,15 +210,23 @@ class CcsInteractive(cmd.Cmd):
     def update_players(self):
         update_players(self.players)
 
+    def find_player(self, name):
+        for p in self.players:
+            if p.name == name:
+                return p
+
     def do_push(self, line):
         '''Push new simulation'''
         global nplayers
 
         try:
-            i, j, r = self.parse_line(line)
+            i, j, r = self.parse_line_human_format(line)
         except AttributeError:
-            print('Could not parse result simulation %s\n' % line)
-            return
+            try:
+                i, j, r = self.parse_line(line)
+            except AttributeError:
+                print('Could not parse result simulation %s\n' % line)
+                return
 
         if i > nplayers or j > nplayers or i == j:
             print('Invalid players in result simulation %s\n' % line)
@@ -257,5 +276,41 @@ class CcsInteractive(cmd.Cmd):
     def do_EOF(self, line):
         '''Type ^D to exit'''
         return True
+
+    def push_complete_name(self, text, players):
+        if text:
+            complete = [ p.name for p in players if p.name.startswith(text) ]
+        else:
+            complete = [ p.name for p in players ]
+        return complete
+
+    def push_complete_action(self, text):
+        if text:
+            return [ a for a in self.actions if a.startswith(text) ]
+        else:
+            return self.actions
+
+    def complete_push(self, text, line, startidx, endidx):
+        args = len(line.split())
+        if not text: args += 1
+        c = []
+
+        if args == 2:
+            c = self.push_complete_name(text, self.players)
+        elif args == 3:
+            c = self.push_complete_action(text)
+        elif args == 4:
+            xname = line.split()[1]
+            x = self.find_player(xname)
+            if not x:
+                print('No such player %s' % xname)
+                return None
+
+            players = [ p for p in self.players if p.name != xname and len(p.games.get(x, tuple())) < 2]
+            c = self.push_complete_name(text, players)
+
+        if len(c) == 1:
+            return [ c[0] + ' ' ]
+        return c
 
 CcsInteractive(players).cmdloop()
