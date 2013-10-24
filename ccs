@@ -22,6 +22,31 @@ parser.add_argument('html_file', nargs=1, type=str,
                     help='html file with current state')
 args = parser.parse_args()
 
+class Colors:
+    def __init__(self):
+        self.enable()
+    def enable(self):
+        self.RED = '\033[31m'
+        self.GREEN = '\033[32m'
+        self.YELLOW = '\033[33m'
+        self.CLEAR = '\033[0m'
+    def disable(self):
+        self.GREEN = ''
+        self.RED = ''
+        self.YELLOW = ''
+        self.CLEAR = ''
+    def is_enabled(self):
+        return self.CLEAR != ''
+    def get_color_for_result(self, result):
+        if result == 0:
+            return self.RED
+        elif result == 1:
+            return self.GREEN
+        elif result == 0.5:
+            return self.YELLOW
+        else:
+            return self.GREEN
+
 class Player:
     def __init__(self, name):
         self.name = name
@@ -29,18 +54,31 @@ class Player:
         self.tie = 0
         self.games = dict()
 
+class Games:
+    def __init__(self):
+        self.results = tuple()
+        self.simulated = tuple()
+    def __len__(self):
+        return len(self.results)
+    def append(self, r, simulated):
+        self.results += (r,)
+        self.simulated += (simulated,)
+    def pop(self):
+        self.results = self.results[:-1]
+        self.simulatated =  self.simulated[:-1]
+
 def get_name(col):
     return col.find_all('a')[1].text.strip()
 
 def get_games(col):
-    games = tuple()
+    games = Games()
     for a in col.find_all('a'):
         s = a.text.strip()
         #  '_' is on going, 'X' the game doesn't exist
         if s == '_' or s == 'X':
             continue
 
-        games += float(s),
+        games.append(float(s), False)
 
     return games
 
@@ -91,7 +129,7 @@ for row in thead.next_siblings:
             continue
 
         y = players[j]
-        x.games[y] = x.games.get(y, tuple()) + get_games(col)
+        x.games[y] = get_games(col)
         j += 1
 
     i += 1
@@ -99,7 +137,7 @@ for row in thead.next_siblings:
 def calculate_scores(players):
     scores = []
     for p in players:
-        s = sum(sum(g) for g in p.games.values())
+        s = sum(sum(g.results) for g in p.games.values())
         scores.append(s)
 
     return scores
@@ -111,7 +149,7 @@ def calculate_tie_breaks(players, scores):
         s = 0
         for y in p.games.keys():
             j = players.index(y)
-            s += sum(g * scores[j] for g in p.games[y])
+            s += sum(r * scores[j] for r in p.games[y].results)
         ties.append(s)
 
     return ties
@@ -127,7 +165,7 @@ def update_players(players):
 
     players.sort(key=attrgetter('score', 'tie', 'name'), reverse=True)
 
-def pretty_print_games(players):
+def pretty_print_games(players, colors):
     nplayers = len(players)
 
     # header
@@ -152,7 +190,25 @@ def pretty_print_games(players):
                 print('{0:^8s}'.format('X'), end='')
                 continue
 
-            print('{0:^8s}'.format(' '.join(['%.1g' % g for g in p.games.get(players[j], [])])), end='')
+            game_results = []
+            game_results_color = []
+            if p.games.get(players[j]) is not None:
+                for r, s in zip(p.games.get(players[j]).results, p.games.get(players[j]).simulated):
+                    game_results.append('%.1g' % r)
+                    if s and colors.is_enabled():
+                        game_results_color.append('%s%.1g%s' % (colors.get_color_for_result(r), r, colors.CLEAR))
+                    else:
+                        game_results_color.append('%.1g' % r)
+
+            s = '{0:^8s}'.format(' '.join(game_results))
+
+            if colors.is_enabled():
+                n1 = len(s) - len(s.lstrip())
+                if (n1 == len(s)): n2 = 0
+                else: n2 = len(s) - len(s.rstrip())
+                print('%s%s%s' % (n1 * ' ', ' '.join(game_results_color), n2 * ' '), end='')
+            else:
+                print(s, end='')
 
         print('| %6s |%10s' % (p.score, p.tie))
         i += 1
@@ -170,6 +226,7 @@ class CcsInteractive(cmd.Cmd):
         cmd.Cmd.__init__(self)
         self.players = players
         self.results = []
+        self.colors = Colors()
 
         self.update_players()
 
@@ -179,7 +236,7 @@ class CcsInteractive(cmd.Cmd):
         global nplayers
 
         print("Number of players: %d\n" % nplayers)
-        pretty_print_games(self.players)
+        pretty_print_games(self.players, self.colors)
 
     def parse_line(self, line):
         # Parses name1xname2=result
@@ -240,8 +297,10 @@ class CcsInteractive(cmd.Cmd):
             print('All games already played in %s x %s' % (x.name, y.name))
             return
 
-        x.games[y] = x.games.get(y, tuple()) + (r,)
-        y.games[x] = y.games.get(x, tuple()) + (1 - r,)
+        x.games[y] = x.games.get(y, Games())
+        x.games[y].append(r, True)
+        y.games[x] = y.games.get(x, Games())
+        y.games[x].append(1 - r, True)
         self.update_players()
         self.results.append((x, y, r))
 
@@ -255,6 +314,16 @@ class CcsInteractive(cmd.Cmd):
         for r in self.results:
             self.pretty_print_simulation(r)
 
+    def do_colors(self, line):
+        '''Enable or disable colors'''
+        line = line.strip().lower()
+        if line == 'on' or line == 'true':
+            self.colors.enable()
+        elif line == 'off' or line == 'false':
+            self.colors.disable()
+        else:
+            print('Ahn?!?')
+
     def do_pop(self, line):
         '''Remove last simulation'''
         if not self.results:
@@ -265,8 +334,8 @@ class CcsInteractive(cmd.Cmd):
 
         x, y, r = s
 
-        x.games[y] = x.games[y][:-1]
-        y.games[x] = y.games[x][:-1]
+        x.games[y].pop()
+        y.games[x].pop()
         self.update_players()
 
         print('Simulation removed: ', end='')
@@ -306,7 +375,7 @@ class CcsInteractive(cmd.Cmd):
                 print('No such player %s' % xname)
                 return None
 
-            players = [ p for p in self.players if p.name != xname and len(p.games.get(x, tuple())) < 2]
+            players = [ p for p in self.players if p.name != xname and len(p.games.get(x, Games())) < 2]
             c = self.push_complete_name(text, players)
 
         if len(c) == 1:
