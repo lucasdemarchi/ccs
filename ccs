@@ -334,13 +334,8 @@ class CcsInteractive(cmd.Cmd):
         else:
             print('Ahn?!?')
 
-    def do_pop(self, line):
-        '''Remove last simulation'''
-        if not self.results:
-            print('No simulation to pop')
-            return
-
-        s = self.results.pop()
+    def pop(self, n=-1):
+        s = self.results.pop(n)
 
         x, y, r = s
 
@@ -351,6 +346,26 @@ class CcsInteractive(cmd.Cmd):
         print('Simulation removed: ', end='')
         self.pretty_print_simulation(s)
         self.do_state('')
+
+    def do_del(self, line):
+        '''Remove a simulation
+        Syntax:
+          del <N>
+
+        Arguments:
+          N: simulation number as the output in 'simulations'
+        '''
+        n = int(line.strip())
+        if n > len(self.results):
+            return
+        self.pop(n - 1)
+
+    def do_pop(self, line):
+        '''Remove last simulation'''
+        if not self.results:
+            print('No simulation to pop')
+            return
+        self.pop()
 
     def do_EOF(self, line):
         '''Type ^D to exit'''
