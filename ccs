@@ -272,8 +272,16 @@ class CcsInteractive(cmd.Cmd):
             if p.name == name:
                 return p
 
-    def do_push(self, line):
-        '''Push new simulation'''
+    def do_add(self, line):
+        '''Add a new simulation
+
+          You can use either of the formats below:
+          - add 1x4=1
+            The player in position 1 against the player
+            in position 4
+          - add player1 [wins-against|loses-against] player2
+            The player named player1 wins or loses against player2
+        '''
         global nplayers
 
         try:
@@ -346,28 +354,28 @@ class CcsInteractive(cmd.Cmd):
         '''Type ^D to exit'''
         return True
 
-    def push_complete_name(self, text, players):
+    def add_complete_name(self, text, players):
         if text:
             complete = [ p.name for p in players if p.name.startswith(text) ]
         else:
             complete = [ p.name for p in players ]
         return complete
 
-    def push_complete_action(self, text):
+    def add_complete_action(self, text):
         if text:
             return [ a for a in self.actions if a.startswith(text) ]
         else:
             return self.actions
 
-    def complete_push(self, text, line, startidx, endidx):
+    def complete_add(self, text, line, startidx, endidx):
         args = len(line.split())
         if not text: args += 1
         c = []
 
         if args == 2:
-            c = self.push_complete_name(text, self.players)
+            c = self.add_complete_name(text, self.players)
         elif args == 3:
-            c = self.push_complete_action(text)
+            c = self.add_complete_action(text)
         elif args == 4:
             xname = line.split()[1]
             x = self.find_player(xname)
@@ -376,7 +384,7 @@ class CcsInteractive(cmd.Cmd):
                 return None
 
             players = [ p for p in self.players if p.name != xname and len(p.games.get(x, Games())) < 2]
-            c = self.push_complete_name(text, players)
+            c = self.add_complete_name(text, players)
 
         if len(c) == 1:
             return [ c[0] + ' ' ]
