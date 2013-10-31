@@ -253,7 +253,7 @@ class CcsInteractive(cmd.Cmd):
 
         return x, y, r % 2
 
-    def pretty_print_simulation(self, sim):
+    def pretty_print_simulation(self, sim, prefix=''):
         x, y, r = sim
         if r == 0:
             rstr = " loses against "
@@ -262,7 +262,7 @@ class CcsInteractive(cmd.Cmd):
         else:
             rstr = " draws with "
 
-        print('%s%s%s' % (x.name, rstr, y.name))
+        print('%s%s%s%s' % (prefix, x.name, rstr, y.name))
 
     def update_players(self):
         update_players(self.players)
@@ -319,8 +319,10 @@ class CcsInteractive(cmd.Cmd):
     def do_simulations(self, line):
         '''Print current simulations'''
 
+        i = 1
         for r in self.results:
-            self.pretty_print_simulation(r)
+            self.pretty_print_simulation(r, "%d. " % i)
+            i += 1
 
     def do_colors(self, line):
         '''Enable or disable colors'''
