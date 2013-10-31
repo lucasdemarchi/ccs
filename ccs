@@ -220,7 +220,7 @@ class CcsInteractive(cmd.Cmd):
 
     prompt = "ccs> "
     undoc_header = ''
-    actions = [ 'wins-against', 'loses-against' ]
+    actions = { 'wins-against': 1, 'loses-against': 0, 'draws-against': 0.5 }
 
     def __init__(self, players):
         cmd.Cmd.__init__(self)
@@ -247,11 +247,11 @@ class CcsInteractive(cmd.Cmd):
         xname, result, yname = line.split()
         x = self.players.index(self.find_player(xname)) + 1
         y = self.players.index(self.find_player(yname)) + 1
-        r = self.actions.index(result) + 1
+        r = self.actions[result]
         if not x or not y or not r:
             raise AttributeError()
 
-        return x, y, r % 2
+        return x, y, r
 
     def pretty_print_simulation(self, sim, prefix=''):
         x, y, r = sim
@@ -380,9 +380,9 @@ class CcsInteractive(cmd.Cmd):
 
     def add_complete_action(self, text):
         if text:
-            return [ a for a in self.actions if a.startswith(text) ]
+            return [ a for a in self.actions.keys() if a.startswith(text) ]
         else:
-            return self.actions
+            return self.actions.keys()
 
     def complete_add(self, text, line, startidx, endidx):
         args = len(line.split())
