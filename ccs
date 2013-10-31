@@ -260,7 +260,7 @@ class CcsInteractive(cmd.Cmd):
         elif r == 1:
             rstr = " beats "
         else:
-            rstr = " ties with "
+            rstr = " draws with "
 
         print('%s%s%s' % (x.name, rstr, y.name))
 
