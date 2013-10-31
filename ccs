@@ -255,14 +255,8 @@ class CcsInteractive(cmd.Cmd):
 
     def pretty_print_simulation(self, sim, prefix=''):
         x, y, r = sim
-        if r == 0:
-            rstr = " loses against "
-        elif r == 1:
-            rstr = " beats "
-        else:
-            rstr = " draws with "
-
-        print('%s%s%s%s' % (prefix, x.name, rstr, y.name))
+        rstr = [ k for k, v in self.actions.iteritems() if v == r ][0]
+        print('%s%s %s %s' % (prefix, x.name, rstr, y.name))
 
     def update_players(self):
         update_players(self.players)
